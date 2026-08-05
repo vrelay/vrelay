@@ -2,7 +2,7 @@ name: generate 3D contribution graph
 
 on:
   schedule:
-    - cron: "0 18 * * *"
+    - cron: "0 18 * * 1,4"
   workflow_dispatch:
   push:
     branches: [main]
