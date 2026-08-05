@@ -1,0 +1,69 @@
+name: generate contribution snake
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/snake.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate snake SVGs
+        uses: Platane/snk@v3
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          outputs: |
+            dist/github-contribution-grid-snake.svg?color_snake=#216e39&color_dots=#ebedf0,#9be9a8,#40c463,#30a14e,#216e39
+            dist/github-contribution-grid-snake-dark.svg?color_snake=#39d353&color_dots=#161b22,#0e4429,#006d32,#26a641,#39d353
+
+      # GitHub READMEs can't start SVG animations on scroll, so pad ~18s of
+      # idle full-grid at the start of every loop before the snake moves.
+      - name: Delay snake start (~18s full grid hold)
+        run: |
+          python3 << 'PY'
+          import pathlib, re
+
+          IDLE_MS = 18000  # hold full contribution grid before eating
+
+          def delay_svg(path: pathlib.Path) -> None:
+              text = path.read_text()
+
+              m = re.search(r"animation:none(?: linear)? (\d+)ms", text)
+              if not m:
+                  raise SystemExit(f"no duration in {path}")
+              old_ms = int(m.group(1))
+              new_ms = old_ms + IDLE_MS
+              idle = IDLE_MS / new_ms  # fraction of timeline that stays idle
+
+              def remap_pct(match: re.Match) -> str:
+                  p = float(match.group(1))
+                  return f"{idle * 100 + p * (1 - idle):.4f}%"
+
+              text = re.sub(rf"{old_ms}ms", f"{new_ms}ms", text)
+              text = re.sub(r"(\d+(?:\.\d+)?)%", remap_pct, text)
+              path.write_text(text)
+              print(f"{path.name}: {old_ms}ms -> {new_ms}ms, idle={IDLE_MS}ms")
+
+          for svg in pathlib.Path("dist").glob("*.svg"):
+              delay_svg(svg)
+          PY
+
+      - name: Commit snake to main
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add dist/*.svg
+          if git commit -m "chore: update contribution snake"; then
+            git push
+          fi
