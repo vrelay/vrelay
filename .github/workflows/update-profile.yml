@@ -10,6 +10,7 @@ on:
       - ".github/workflows/update-profile.yml"
       - "scripts/commit_generated.sh"
       - "scripts/extract_svg.py"
+      - "scripts/fix_3d_languages.py"
 
 permissions:
   contents: write
@@ -30,6 +31,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USERNAME: ${{ github.repository_owner }}
+
+      - name: Fix 3D language pie
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USER: ${{ github.repository_owner }}
+        run: python3 scripts/fix_3d_languages.py
 
       - name: Generate snake SVGs
         uses: Platane/snk@v3
