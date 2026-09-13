@@ -65,4 +65,7 @@ jobs:
           PY
 
       - name: Commit snake to main
-        run: bash scripts/commit_generated.sh "chore: update contribution snake" dist
+        run: >
+          bash scripts/commit_generated.sh
+          "chore: update contribution snake"
+          dist

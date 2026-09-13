@@ -30,4 +30,7 @@ jobs:
           USERNAME: ${{ github.repository_owner }}
 
       - name: Commit 3D graphs to main
-        run: bash scripts/commit_generated.sh "chore: update 3D contribution graph" profile-3d-contrib
+        run: >
+          bash scripts/commit_generated.sh
+          "chore: update 3D contribution graph"
+          profile-3d-contrib
