@@ -1,0 +1,27 @@
+name: generate activity graph
+
+on:
+  schedule:
+    - cron: "30 18 * * 1,4"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/activity-graph.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: pipipi-dev/gcchart@v1
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          target_branch: output
+          commit_message: "chore: update activity graph"
+          outputs: |
+            contributions.svg?style=clean&theme=dark&period=365&granularity=week

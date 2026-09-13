@@ -1,0 +1,83 @@
+name: update profile cards
+
+on:
+  schedule:
+    - cron: "30 18 * * 1,4"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/profile-cards.yml"
+      - "scripts/extract_svg.py"
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate stats card
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: stats
+          path: profile/stats.svg
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fail_on_error: true
+          options: username=${{ github.repository_owner }}&show_icons=true&theme=tokyonight&hide_border=true&bg_color=0D1117&title_color=7C3AED&icon_color=7C3AED&include_all_commits=true&count_private=true
+
+      - name: Generate top languages card
+        uses: stats-organization/github-readme-stats-action@v2
+        with:
+          card: top-langs
+          path: profile/top-langs.svg
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fail_on_error: true
+          options: username=${{ github.repository_owner }}&layout=compact&theme=tokyonight&hide_border=true&bg_color=0D1117&title_color=7C3AED&langs_count=8&hide=html,css&size_weight=0.5&count_weight=0.5
+
+      - name: Generate streak card
+        uses: DenverCoder1/github-readme-streak-stats@main
+        with:
+          path: profile/streak.svg
+          token: ${{ secrets.GITHUB_TOKEN }}
+          options: user=${{ github.repository_owner }}&theme=tokyonight&hide_border=true&background=0D1117&ring=7C3AED&fire=7C3AED&currStreakLabel=7C3AED
+
+      - name: Snapshot trophies
+        run: |
+          set -euo pipefail
+          mkdir -p profile
+          urls=(
+            "https://github-profile-trophy-orcin-eta.vercel.app/?username=${{ github.repository_owner }}&theme=tokyonight&no-frame=true&no-bg=true&margin-w=6&column=7&rank=-UNKNOWN"
+            "https://github-profile-trophy-tawny.vercel.app/?username=${{ github.repository_owner }}&theme=tokyonight&no-frame=true&no-bg=true&margin-w=6&column=7&rank=-UNKNOWN"
+            "https://github-profile-trophy-psi.vercel.app/?username=${{ github.repository_owner }}&theme=tokyonight&no-frame=true&no-bg=true&margin-w=6&column=7&rank=-UNKNOWN"
+          )
+          ok=0
+          for url in "${urls[@]}"; do
+            echo "Trying $url"
+            if curl -fsSL --max-time 30 "$url" -o /tmp/trophies.svg \
+              && grep -q '<svg' /tmp/trophies.svg \
+              && ! grep -qiE 'INTERNAL_SERVER_ERROR|FUNCTION_INVOCATION|Payment required|DEPLOYMENT|SERVICE_UNAVAILABLE' /tmp/trophies.svg; then
+              python3 scripts/extract_svg.py /tmp/trophies.svg profile/trophies.svg
+              ok=1
+              break
+            fi
+          done
+          if [ "$ok" -ne 1 ]; then
+            echo "All trophy hosts failed; keeping the last committed SVG"
+          fi
+
+      - name: Commit profile cards
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add profile/*.svg
+          if git diff --staged --quiet; then
+            echo "No profile card changes to commit"
+            exit 0
+          fi
+          git commit -m "chore: update profile cards"
+          git pull --rebase origin main
+          git push

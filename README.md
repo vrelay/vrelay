@@ -35,7 +35,7 @@ Most days you'll find me in **TypeScript**, **Python**, or **Go**.
 ### trophies
 
 <p align="center">
-  <img src="https://github-profile-trophy-psi.vercel.app/?username=vrelay&theme=tokyonight&no-frame=true&no-bg=true&margin-w=6&column=7" alt="trophies" />
+  <img src="https://raw.githubusercontent.com/vrelay/vrelay/main/profile/trophies.svg" alt="trophies" />
 </p>
 
 ---
@@ -43,12 +43,12 @@ Most days you'll find me in **TypeScript**, **Python**, or **Go**.
 ### stats
 
 <p align="center">
-  <img height="180" src="https://github-stats-extended.vercel.app/api?username=vrelay&show_icons=true&theme=tokyonight&hide_border=true&bg_color=0D1117&title_color=7C3AED&icon_color=7C3AED&include_all_commits=true&count_private=true" alt="stats" />
-  <img height="180" src="https://github-stats-extended.vercel.app/api/top-langs/?username=vrelay&layout=compact&theme=tokyonight&hide_border=true&bg_color=0D1117&title_color=7C3AED&langs_count=8" alt="languages" />
+  <img height="180" src="https://raw.githubusercontent.com/vrelay/vrelay/main/profile/stats.svg" alt="stats" />
+  <img height="180" src="https://raw.githubusercontent.com/vrelay/vrelay/main/profile/top-langs.svg" alt="languages" />
 </p>
 
 <p align="center">
-  <img src="https://github-readme-streak-stats-salesp07.vercel.app/?user=vrelay&theme=tokyonight&hide_border=true&background=0D1117&ring=7C3AED&fire=7C3AED&currStreakLabel=7C3AED" alt="streak" />
+  <img src="https://raw.githubusercontent.com/vrelay/vrelay/main/profile/streak.svg" alt="streak" />
 </p>
 
 ---
@@ -56,7 +56,7 @@ Most days you'll find me in **TypeScript**, **Python**, or **Go**.
 ### contribution graph
 
 <p align="center">
-  <img src="https://github-readme-activity-graph.vercel.app/graph?username=vrelay&bg_color=0D1117&color=7C3AED&line=7C3AED&point=ffffff&area=true&area_color=7C3AED&hide_border=true&radius=8" alt="activity graph" />
+  <img src="https://raw.githubusercontent.com/vrelay/vrelay/output/contributions.svg" alt="activity graph" />
 </p>
 
 ---
