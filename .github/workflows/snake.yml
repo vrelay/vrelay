@@ -8,9 +8,14 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/snake.yml"
+      - "scripts/commit_generated.sh"
 
 permissions:
   contents: write
+
+concurrency:
+  group: profile-main
+  cancel-in-progress: false
 
 jobs:
   generate:
@@ -60,14 +65,4 @@ jobs:
           PY
 
       - name: Commit snake to main
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add dist/*.svg
-          if git diff --staged --quiet; then
-            echo "No snake changes to commit"
-            exit 0
-          fi
-          git commit -m "chore: update contribution snake"
-          git pull --rebase origin main
-          git push
+        run: bash scripts/commit_generated.sh "chore: update contribution snake" dist

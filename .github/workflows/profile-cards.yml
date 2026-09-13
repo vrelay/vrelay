@@ -9,9 +9,14 @@ on:
     paths:
       - ".github/workflows/profile-cards.yml"
       - "scripts/extract_svg.py"
+      - "scripts/commit_generated.sh"
 
 permissions:
   contents: write
+
+concurrency:
+  group: profile-main
+  cancel-in-progress: false
 
 jobs:
   generate:
@@ -70,14 +75,4 @@ jobs:
           fi
 
       - name: Commit profile cards
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add profile/*.svg
-          if git diff --staged --quiet; then
-            echo "No profile card changes to commit"
-            exit 0
-          fi
-          git commit -m "chore: update profile cards"
-          git pull --rebase origin main
-          git push
+        run: bash scripts/commit_generated.sh "chore: update profile cards" profile
