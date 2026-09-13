@@ -64,7 +64,7 @@ Most days you'll find me in **TypeScript**, **Python**, or **Go**.
 ### 3D contribution calendar
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/vrelay/vrelay/main/profile-3d-contrib/profile-night-rainbow.svg" width="100%" alt="3D contribution graph" />
+  <img src="https://raw.githubusercontent.com/vrelay/vrelay/main/profile-3d-contrib/profile-night-rainbow.svg?v=langs" width="100%" alt="3D contribution graph" />
 </p>
 
 ---

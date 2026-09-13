@@ -7,8 +7,8 @@ import json
 import math
 import os
 import pathlib
+import re
 import ssl
-import urllib.error
 import urllib.request
 
 USER = os.environ.get("GITHUB_USER", "vrelay")
@@ -17,7 +17,7 @@ HIDE = {"HTML", "CSS"}
 TOP_N = 5
 SIZE_WEIGHT = 0.5
 COUNT_WEIGHT = 0.5
-PIE_TRANSFORM = 'transform="translate(40, 520)"'
+PIE_START = re.compile(r'<g transform="translate\(\s*40\s*,\s*520\s*\)">')
 
 LANG_COLORS = {
     "TypeScript": "#3178c6",
@@ -150,9 +150,10 @@ def pie_group(langs: list[tuple[str, float, str]]) -> str:
 
 
 def replace_pie(svg: str, pie: str) -> str:
-    start = svg.find(f"<g {PIE_TRANSFORM}>")
-    if start < 0:
-        return svg
+    match = PIE_START.search(svg)
+    if not match:
+        raise SystemExit("pie group not found")
+    start = match.start()
     depth = 0
     k = start
     while k < len(svg):
@@ -175,13 +176,17 @@ def main() -> None:
     print("languages:", ", ".join(f"{n} {s:.3f}" for n, s, _ in langs))
     pie = pie_group(langs)
     root = pathlib.Path("profile-3d-contrib")
+    updated = 0
     for path in sorted(root.glob("*.svg")):
         text = path.read_text()
-        if PIE_TRANSFORM not in text:
+        if not PIE_START.search(text):
             print(f"skip {path.name}")
             continue
         path.write_text(replace_pie(text, pie))
         print(f"updated {path.name}")
+        updated += 1
+    if updated == 0:
+        raise SystemExit("no 3D SVGs had a language pie to replace")
 
 
 if __name__ == "__main__":

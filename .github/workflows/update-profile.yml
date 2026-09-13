@@ -124,11 +124,31 @@ jobs:
             echo "All trophy hosts failed; keeping the last committed SVG"
           fi
 
+      - name: Bust cached 3D image
+        run: |
+          python3 << 'PY'
+          import os, re
+          from pathlib import Path
+          run_id = os.environ["GITHUB_RUN_ID"]
+          path = Path("README.md")
+          text = path.read_text()
+          new, n = re.subn(
+              r"(profile-night-rainbow\.svg)(?:\?v=[^\"')\s]+)?",
+              rf"\1?v={run_id}",
+              text,
+              count=1,
+          )
+          if n != 1:
+              raise SystemExit("README 3D image URL not found")
+          path.write_text(new)
+          print(f"cache-bust v={run_id}")
+          PY
+
       - name: Commit generated graphics
         run: |
           bash scripts/commit_generated.sh \
             "chore: update profile graphics" \
-            profile-3d-contrib dist profile
+            profile-3d-contrib dist profile README.md
 
   activity:
     runs-on: ubuntu-latest
