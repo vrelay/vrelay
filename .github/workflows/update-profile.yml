@@ -1,29 +1,72 @@
-name: update profile cards
+name: update profile
 
 on:
   schedule:
-    - cron: "30 18 * * 1,4"
+    - cron: "0 18 * * 1,4"
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - ".github/workflows/profile-cards.yml"
-      - "scripts/extract_svg.py"
+      - ".github/workflows/update-profile.yml"
       - "scripts/commit_generated.sh"
+      - "scripts/extract_svg.py"
 
 permissions:
   contents: write
 
 concurrency:
-  group: profile-main
+  group: update-profile
   cancel-in-progress: false
 
 jobs:
-  generate:
+  graphics:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+
+      - name: Generate 3D contribution graphs
+        uses: yoshi389111/github-profile-3d-contrib@v0.9.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          USERNAME: ${{ github.repository_owner }}
+
+      - name: Generate snake SVGs
+        uses: Platane/snk@v3
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          outputs: |
+            dist/github-contribution-grid-snake.svg?color_snake=#216e39&color_dots=#ebedf0,#9be9a8,#40c463,#30a14e,#216e39
+            dist/github-contribution-grid-snake-dark.svg?color_snake=#39d353&color_dots=#161b22,#0e4429,#006d32,#26a641,#39d353
+
+      - name: Delay snake start
+        run: |
+          python3 << 'PY'
+          import pathlib, re
+
+          IDLE_MS = 18000
+
+          def delay_svg(path: pathlib.Path) -> None:
+              text = path.read_text()
+              m = re.search(r"animation:none(?: linear)? (\d+)ms", text)
+              if not m:
+                  raise SystemExit(f"no duration in {path}")
+              old_ms = int(m.group(1))
+              new_ms = old_ms + IDLE_MS
+              idle = IDLE_MS / new_ms
+
+              def remap_pct(match: re.Match) -> str:
+                  p = float(match.group(1))
+                  return f"{idle * 100 + p * (1 - idle):.4f}%"
+
+              text = re.sub(rf"{old_ms}ms", f"{new_ms}ms", text)
+              text = re.sub(r"(\d+(?:\.\d+)?)%", remap_pct, text)
+              path.write_text(text)
+              print(f"{path.name}: {old_ms}ms -> {new_ms}ms, idle={IDLE_MS}ms")
+
+          for svg in pathlib.Path("dist").glob("*.svg"):
+              delay_svg(svg)
+          PY
 
       - name: Generate stats card
         uses: stats-organization/github-readme-stats-action@v2
@@ -74,8 +117,21 @@ jobs:
             echo "All trophy hosts failed; keeping the last committed SVG"
           fi
 
-      - name: Commit profile cards
-        run: >
-          bash scripts/commit_generated.sh
-          "chore: update profile cards"
-          profile
+      - name: Commit generated graphics
+        run: |
+          bash scripts/commit_generated.sh \
+            "chore: update profile graphics" \
+            profile-3d-contrib dist profile
+
+  activity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: pipipi-dev/gcchart@v1
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          target_branch: output
+          commit_message: "chore: update activity graph"
+          outputs: |
+            contributions.svg?style=clean&theme=dark&period=365&granularity=week
